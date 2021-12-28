@@ -1,5 +1,6 @@
 export interface IImmutableApi {
-    fetchOrders(cardName: string, token: Tokens): Promise<OrderResponse>;
+    fetchOrders(cardId: number, token: Tokens): Promise<OrderResponse>;
+    fetchInventory(wallet: string, cardId?: number): Promise<IInventoryResponse>;
 }
 
 export interface OrderResponse {
@@ -76,3 +77,69 @@ export enum Tokens {
     USDC,
     GOG
 }
+
+export interface ICoinPrice {
+    ethereum: {
+        usd: number;
+    },
+    ['gods-unchained']:{
+        usd: number,
+    }
+}
+
+export interface IInventoryResponse {
+    cursor: string,
+    remaining: number,
+    result: [
+        {
+        collection: {
+            icon_url: string,
+            name: string
+        },
+        created_at: string,
+        description: string,
+        fees: [
+            {
+            address: string,
+            percentage: number,
+            type: string
+            }
+        ],
+        id: string,
+        image_url: string,
+        metadata: [ {
+            god: string,
+                set: string,
+                mana: 3,
+                name: string,
+                type: string,
+                image: string,
+                proto: number,
+                attack: number,
+                effect: string,
+                health: number,
+                rarity: string,
+                quality: string
+        }],
+        name: string,
+        orders: {
+            sell_orders: [
+            {
+                order_id: number,
+                user: string,
+                status: string,
+                contract_address: string,
+                buy_quantity: number,
+                buy_decimals: number
+            }
+            ]
+        },
+        status: string,
+        token_address: string,
+        token_id: string,
+        updated_at: string,
+        uri: string,
+        user: string
+        }
+    ]
+    }

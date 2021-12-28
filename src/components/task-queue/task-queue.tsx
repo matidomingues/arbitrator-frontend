@@ -1,30 +1,32 @@
 
+interface ITask<T> {
+    promiseResolve: (value: T | PromiseLike<T>) => void;
+    task: () => Promise<any>
+}
+
 export class TaskQueue {
 
-    private static tasksToExecute: (() => Promise<any>)[] = [];
+    private static tasksToExecute: ITask<any>[] = [];
 
     constructor(private concurrentJobs: number, private waitTimeInMs: number){
-        console.log(TaskQueue.tasksToExecute);
         this.run();
     }
 
-    addTask(fn: () => Promise<any>) {
-        console.log('addedTask');
-        TaskQueue.tasksToExecute.push(fn);
+    addTask<T>(fn: () => Promise<T>): Promise<T> {
+        return new Promise<T>(resolve => {
+            TaskQueue.tasksToExecute.push({task: fn, promiseResolve: resolve});
+        })
+        
     }
 
     run() {
-        console.log('executed ', TaskQueue.tasksToExecute.length);
-        const task = TaskQueue.tasksToExecute.pop();
-        console.log('popped ', TaskQueue.tasksToExecute.length);
-        if(task) {
-            console.log('executing task')
-            task().then((response) => {
-                console.log('run in 200ms');
+        const taskWrapper = TaskQueue.tasksToExecute.pop();
+        if(taskWrapper) {
+            taskWrapper.task().then((response) => {
                 setTimeout(() => this.run(), this.waitTimeInMs);
+                taskWrapper.promiseResolve(response);
             })
         } else {
-            console.log('executing else');
             setTimeout(() => this.run(), this.waitTimeInMs);
         }
             

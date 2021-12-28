@@ -1,0 +1,40 @@
+.cardsFilter{
+    display: flex;
+    flex-direction: column;
+    max-height: 20rem;
+    width: 12rem;
+}
+
+.text {
+    cursor: pointer;
+    padding: 11px;
+    margin: 0;
+    border-bottom: 1px solid rgb(243, 242, 241);
+}
+
+.text:hover {
+    background-color: rgb(243, 242, 241)
+}
+
+.selected-token {
+    color: #323130;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selected-token:hover {
+    background-color: rgb(243, 242, 241);
+}
+
+.selected-token:hover > .remove-token {
+    display: flex;
+}
+
+.remove-token {
+    display: none;
+}

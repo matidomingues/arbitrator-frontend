@@ -1,0 +1,41 @@
+.container {
+    background-color: white;
+}
+
+.nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 3.5rem;
+    padding: 0 1rem;
+    background-color: white;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.wallet-container {
+    display: flex;
+    align-items: center;
+}
+
+.token-container {
+    text-align: end;
+}
+
+.imx-wallet-container {
+    margin-right: 1rem;
+}
+
+.value-container {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+.text-container {
+    margin-right: 0.5rem;
+}
+
+.breadcrumb-item {
+    cursor: pointer;
+}
