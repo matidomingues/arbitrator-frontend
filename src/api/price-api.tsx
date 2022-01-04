@@ -15,6 +15,7 @@ export class PriceApi {
             switch(token) {
                 case Tokens.ETH: ; currencies.push('ethereum');break;
                 case Tokens.GODS: currencies.push('gods-unchained'); break;
+                case Tokens.IMX: currencies.push('immutable-x'); break;
             }
         });
         url.searchParams.append('ids', currencies.join(','));

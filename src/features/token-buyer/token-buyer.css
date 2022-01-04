@@ -1,12 +1,18 @@
-.token-container {
-    display:flex;
+.orders-container {
+    display: flex;
     flex-direction: column;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 10px;
+    align-items: center;
+    margin-bottom: 1rem;
+    width: 12rem;
 }
 
 .order-container {
     display:flex;
     flex-direction: column;
-    max-height: 20rem;
+    height: 15rem;
     overflow-y: auto;
     width: 10rem;
     text-align: center;
@@ -14,4 +20,29 @@
 
 .space-container {
     display: flex;
+    justify-content: space-evenly;
+    margin: 3rem;
+}
+
+.section-title {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    font-weight: 600;
+    font-size: 20px;
+}
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.buy-container{
+    display: flex;
+    flex-direction: column;
+}
+
+.buy-amount-container {
+    margin-bottom: .5rem;
 }

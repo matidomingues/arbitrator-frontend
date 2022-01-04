@@ -39,3 +39,11 @@
 .breadcrumb-item {
     cursor: pointer;
 }
+
+.breadcrumb-separator {
+    margin: 0 0.5rem;
+}
+
+.breadcrumb-container {
+    display: flex;
+}

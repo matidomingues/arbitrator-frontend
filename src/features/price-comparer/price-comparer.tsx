@@ -1,21 +1,19 @@
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import './price-comparer.css';
-import { ImmutableApi } from '../../api/immutable-api';
 import { ImmutableRepo } from '../../repositories/immutable-repo';
 import { Tokens } from '../../api/interfaces';
-import { TaskQueue } from '../../components/task-queue/task-queue';
 import { CardsFilter } from '../../components/cards-filter/cards-filter';
 import { PriceRepo } from '../../repositories/price-repo';
-import { PriceApi } from '../../api/price-api';
 import { Card } from '../../repositories/interfaces';
-import { Link, NavigateFunction, useNavigate, useOutletContext } from 'react-router-dom';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 
 interface IState {
   ethPrice: number, 
   godsPrice: number, 
-  priceList: {[cardId: string]: {minGodsPrice: number, minEthPrice: number}}, 
+  priceList: {[cardId: string]: {minGodsPrice: number, minEthPrice: number, difference: number}}, 
   cardList: {[cardId:string]: Card},
-  trackedCards: {cardId: number, variation: number, cardName: string}[]
+  trackedCards: {cardId: number, variation: number, cardName: string}[],
+  sort: {criteria: string, asc: boolean}
 }
 
 interface IProps {
@@ -33,17 +31,17 @@ class PriceComparerWrapped extends Component<IProps,IState> {
       window.sessionStorage.setItem('savedTrackedCards', '[]');
       savedTrackedCards = [];
     }
-    this.state = ({ethPrice: 0, godsPrice: 0, priceList: {}, cardList: {}, trackedCards: savedTrackedCards});    
+    this.state = ({ethPrice: 0, godsPrice: 0, priceList: {}, cardList: {}, trackedCards: savedTrackedCards, sort: {criteria: 'difference', asc: false}});    
   }
 
   componentDidMount() {
-    this.state.trackedCards.forEach(card => this.fetchOrders(card.cardId));
     this.props.priceRepo.getTokensPrice([Tokens.ETH, Tokens.GODS]).then(tokensPrice =>{
       this.setState({
         ...this.state,
         ethPrice: tokensPrice.ethereum.usd,
         godsPrice: tokensPrice['gods-unchained'].usd
-      })
+      });
+      this.state.trackedCards.forEach(card => this.fetchOrders(card.cardId));
     })
   }
 
@@ -51,12 +49,15 @@ class PriceComparerWrapped extends Component<IProps,IState> {
    this.props.immutableRepo.fetchOrders(cardId, variation, token).then(orders => {
       if (orders.length === 0) return;    
       
-        const newPriceList = {...this.state.priceList} as  {[cardId: string]: {minGodsPrice: number, minEthPrice: number}};
+        const newPriceList = {...this.state.priceList} as  {[cardId: string]: {minGodsPrice: number, minEthPrice: number, difference: number}};
+        const minEthPrice = token ===Tokens.ETH ? orders[0].ammount : this.state.priceList[`${cardId}-${variation}`]?.minEthPrice || 0;
+        const minGodsPrice = token === Tokens.GODS ? orders[0].ammount : this.state.priceList[`${cardId}-${variation}`]?.minGodsPrice || 0;
+
         newPriceList[`${cardId}-${variation}`] = {
-          minEthPrice: token === Tokens.ETH ? orders[0].ammount : this.state.priceList[`${cardId}-${variation}`]?.minEthPrice || 0,
-          minGodsPrice: token === Tokens.GODS ? orders[0].ammount : this.state.priceList[`${cardId}-${variation}`]?.minGodsPrice || 0
+          minEthPrice,
+          minGodsPrice,
+          difference: ((((minGodsPrice * this.state.godsPrice)-(minEthPrice * this.state.ethPrice))/(minEthPrice * this.state.ethPrice)) * 100)
         }
-        console.log(token === Tokens.ETH ? orders[0].ammount : this.state.priceList[`${cardId}-${variation}`]?.minEthPrice || 0, token === Tokens.GODS ? orders[0].ammount : this.state.priceList[`${cardId}-${variation}`]?.minGodsPrice || 0)
 
         this.setState({
           ...this.state,
@@ -93,7 +94,31 @@ class PriceComparerWrapped extends Component<IProps,IState> {
     window.sessionStorage.setItem('savedTrackedCards', JSON.stringify(newArray));
   }
 
+  setSortDirection = ((key: string) => {
+    this.setState({
+      ...this.state,
+      sort: {
+        asc: this.state.sort.criteria === key ? !this.state.sort.asc : true,
+        criteria: key
+      }
+    })
+  })
+
+  getSortDirection = (key: string) => {
+    if (this.state.sort.criteria !== key) return null;
+    return this.state.sort.asc ? '▲' : '▼'; 
+  }
+
   render () {
+    const sortedKeys = Object.keys(this.state.priceList).sort((first: string, second: string) => {
+      switch(this.state.sort.criteria) {
+        case 'difference': return this.state.sort.asc ? this.state.priceList[first].difference- this.state.priceList[second].difference :  this.state.priceList[second].difference- this.state.priceList[first].difference;
+        case 'minEthPrice': return this.state.sort.asc ? this.state.priceList[first].minEthPrice- this.state.priceList[second].minEthPrice :  this.state.priceList[second].minEthPrice- this.state.priceList[first].minEthPrice;
+        case 'minGodsPrice': return this.state.sort.asc ? this.state.priceList[first].minGodsPrice- this.state.priceList[second].minGodsPrice :  this.state.priceList[second].minGodsPrice- this.state.priceList[first].minGodsPrice;
+      }
+      return -1;
+    })
+
     return (
       <div className="App">
         <CardsFilter 
@@ -108,24 +133,23 @@ class PriceComparerWrapped extends Component<IProps,IState> {
               <tr className='table-header'>
                 <th>Id</th>
                 <th>Name</th>
-                <th>Price ETH</th>
-                <th>Price GODS</th>
-                <th>Difference</th>
+                <th className='sortable-header' onClick={() => this.setSortDirection('minEthPrice')}>Price ETH {this.getSortDirection('minEthPrice')}</th>
+                <th className='sortable-header' onClick={() => this.setSortDirection('minGodsPrice')}>Price GODS {this.getSortDirection('minGodsPrice')}</th>
+                <th className='sortable-header' onClick={() => this.setSortDirection('difference')}>Difference {this.getSortDirection('difference')}</th>
               </tr>
-              {Object.keys(this.state.priceList).map(cardKey => {
+              {sortedKeys.map(cardKey => {
                 const keySplit = cardKey.split('-');
                 const card = this.props.immutableRepo.fetchCard(parseInt(keySplit[0]), parseInt(keySplit[1]));
                 const cardPrice = this.state.priceList[cardKey];
                 return (
                   <tr className='table-row' onClick={() => {
-                    console.log(this.props.navigate);
                     this.props.navigate && this.props.navigate(`${card.id}/${card.variation}`)
                     }}>
                     <td>{card.id}-{card.variation}</td>
                     <td>{card.name}</td>
                     <td>{(cardPrice.minEthPrice * this.state.ethPrice).toFixed(2)}$ ({cardPrice.minEthPrice})</td>
                     <td>{(cardPrice.minGodsPrice * this.state.godsPrice).toFixed(2)}$ ({cardPrice.minGodsPrice})</td>
-                    <td>{((((cardPrice.minGodsPrice * this.state.godsPrice)-(cardPrice.minEthPrice * this.state.ethPrice))/(cardPrice.minEthPrice * this.state.ethPrice)) * 100).toFixed(2)}%</td>
+                    <td>{cardPrice.difference.toFixed(2)}%</td>
                   </tr>
                 )
               })}

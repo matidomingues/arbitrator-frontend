@@ -3,7 +3,8 @@ import { Tokens } from "../api/interfaces";
 export interface Order {
     orderId: number,
     ammount: number,
-    currency: Tokens
+    currency: Tokens,
+    owner: string
 }
 
 export interface Card {

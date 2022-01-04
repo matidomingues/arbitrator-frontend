@@ -1,6 +1,6 @@
 export interface IImmutableApi {
-    fetchOrders(cardId: number, token: Tokens): Promise<OrderResponse>;
-    fetchInventory(wallet: string, cardId?: number): Promise<IInventoryResponse>;
+    fetchOrders(cardId: number, variation: number, token: Tokens): Promise<OrderResponse>;
+    fetchInventory(wallet: string, cardId?: number, variation?: number): Promise<IInventoryResponse>;
 }
 
 export interface OrderResponse {
@@ -71,11 +71,12 @@ export interface CardResponse {
 }
 
 export enum Tokens {
-    ETH,
-    GODS,
-    IMX,
-    USDC,
-    GOG
+    ETH = 'ETH',
+    GODS = 'GODS',
+    IMX = 'IMX',
+    USDC = 'USDC',
+    GOG = 'GOG',
+    EMPTY = 'EMPTY'
 }
 
 export interface ICoinPrice {
@@ -83,6 +84,9 @@ export interface ICoinPrice {
         usd: number;
     },
     ['gods-unchained']:{
+        usd: number,
+    },
+    ['immutable-x']:{
         usd: number,
     }
 }

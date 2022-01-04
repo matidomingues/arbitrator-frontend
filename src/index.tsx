@@ -9,24 +9,30 @@ import { ImmutableRepo } from './repositories/immutable-repo';
 import { PriceRepo } from './repositories/price-repo';
 import { TaskQueue } from './components/task-queue/task-queue';
 import { App } from './features/app/app';
-import { Link } from '@imtbl/imx-sdk';
 import PriceComparer from './features/price-comparer/price-comparer';
+import { GodsApi } from './api/gods-api';
+import { GodsRepo } from './repositories/gods-repo';
+import { BuyApp } from './features/buy-app/buy-app';
+import { LoginApp } from './features/login-app/login-app';
+import { ListApp } from './features/list-app/list-app';
 
 const immutableApi = new ImmutableApi();
 const priceApi = new PriceApi()
-const immutableTaskQueue = new TaskQueue(1, 200);
+const immutableTaskQueue = new TaskQueue(4, 100);
+const godsApi = new GodsApi();
 
 const immutableRepo = new ImmutableRepo(immutableApi, immutableTaskQueue);
 const priceRepo = new PriceRepo(priceApi);
-const link = new Link();
-
-
+const godsRepo = new GodsRepo(godsApi);
 
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<App priceRepo={priceRepo}/>}>
+        <Route path="/" element={<App priceRepo={priceRepo} immutableRepo={immutableRepo} godsRepo={godsRepo}/>}>
+        <Route path="login" element={<LoginApp />} />
+        <Route path="list" element={<ListApp />} />
+        <Route path="buy/:orderId" element={<BuyApp />} />
           <Route path=":cardId" element={<TokenBuyer immutableRepo={immutableRepo} />} >
             <Route path=":variationId" element={<TokenBuyer immutableRepo={immutableRepo} />} />
           </Route>
